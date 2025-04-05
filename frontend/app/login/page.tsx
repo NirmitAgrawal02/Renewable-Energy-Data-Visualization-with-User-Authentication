@@ -1,7 +1,6 @@
-// frontend/pages/login.tsx
+'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/router';
-
+import { useRouter } from 'next/navigation'; // Update this
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -70,6 +69,12 @@ export default function LoginPage() {
         >
           Log In
         </button>
+        <p className="text-sm text-center mt-4">
+                Don&apos;t have an account?{' '}
+                <a href="/register" className="text-blue-600 hover:underline">
+                    Register here
+                </a>
+        </p>    
       </form>
     </div>
   );

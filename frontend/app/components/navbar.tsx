@@ -1,6 +1,6 @@
 "use client" // this is a client component
 import React, { useState, useEffect } from "react"
-import { Link } from "react-scroll"
+import Link from "next/link";
 import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
 import { RiMoonFill, RiSunLine } from "react-icons/ri"
@@ -12,21 +12,10 @@ interface NavItem {
 }
 
 const NAV_ITEMS: Array<NavItem> = [
-    {
-        label: "Login",
-        page: "login",
-      },
-      {
-        label: "Dashboard",
-        page: "dashboard",
-      },
-
-    {
-    label: "About",
-    page: "about",
-  },
-  
-]
+    { label: "Login", page: "/login" },
+    { label: "Dashboard", page: "/dashboard" },
+    { label: "About", page: "/about" }, // assuming you have this page
+  ];
 
 export default function Navbar() {
   const { systemTheme, theme, setTheme } = useTheme()
@@ -46,7 +35,7 @@ export default function Navbar() {
       <div className="justify-between md:items-center md:flex">
         <div>
           <div className="flex items-center justify-between py-3 md:py-5 md:block">
-            <Link to="home">
+            <Link href="home">
               <div className="container flex items-center space-x-2">
                 <h2 className="text-2xl font-bold">Renewable Energy Dashboard</h2>
               </div>
@@ -70,30 +59,12 @@ export default function Navbar() {
           >
             <div className="items-center justify-center space-y-8 md:flex md:space-x-6 md:space-y-0">
               {NAV_ITEMS.map((item, idx) => {
-                if (item.label === "Resume") {
-                  return (
-                    <a
-                      key={idx}
-                      href="https://shorturl.at/UY5Co" // Replace with your actual resume URL
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block lg:inline-block text-neutral-900 hover:text-neutral-500 dark:text-neutral-100 cursor-pointer"
-                    >
-                      {item.label}
-                    </a>
-                  )
-                }
                 return (
                   <Link
                     key={idx}
-                    to={item.page}
+                    href={item.page}
                     className="block lg:inline-block text-neutral-900 hover:text-neutral-500 dark:text-neutral-100 cursor-pointer"
-                    activeClass="active"
-                    spy={true}
-                    smooth={true}
-                    offset={-100}
-                    duration={500}
-                    onClick={() => setNavbar(!navbar)}
+                    onClick={() => setNavbar(false)}
                   >
                     {item.label}
                   </Link>
