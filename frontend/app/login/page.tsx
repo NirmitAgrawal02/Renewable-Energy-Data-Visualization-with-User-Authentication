@@ -23,10 +23,13 @@ export default function LoginPage() {
         }),
       });
 
-      if (!res.ok) throw new Error('Invalid credentials');
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.detail || 'Invalid credentials');
+      }
 
       const data = await res.json();
-      localStorage.setItem('token', data.access_token);
+      localStorage.setItem('token', data.access_token); // Store JWT
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Login failed');
@@ -70,11 +73,11 @@ export default function LoginPage() {
           Log In
         </button>
         <p className="text-sm text-center mt-4">
-                Don&apos;t have an account?{' '}
-                <a href="/register" className="text-blue-600 hover:underline">
-                    Register here
-                </a>
-        </p>    
+          Don&apos;t have an account?{' '}
+          <a href="/register" className="text-blue-600 hover:underline">
+            Register here
+          </a>
+        </p>
       </form>
     </div>
   );

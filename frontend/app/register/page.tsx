@@ -1,4 +1,3 @@
-'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -18,11 +17,11 @@ export default function RegisterPage() {
       const res = await fetch('http://localhost:8000/register', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': 'application/json', // Changed to JSON for simplicity
         },
-        body: new URLSearchParams({
-          username: email,
-          password: password,
+        body: JSON.stringify({
+          email,
+          password,
         }),
       });
 
