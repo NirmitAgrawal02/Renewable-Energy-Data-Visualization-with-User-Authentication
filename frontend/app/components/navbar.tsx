@@ -1,34 +1,42 @@
-"use client" // this is a client component
-import React, { useState, useEffect } from "react"
+"use client" 
+import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation"
-import { useTheme } from "next-themes"
-import { RiMoonFill, RiSunLine } from "react-icons/ri"
-import { IoMdMenu, IoMdClose } from "react-icons/io"
+import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
+import { RiMoonFill, RiSunLine } from "react-icons/ri";
+import { IoMdMenu, IoMdClose } from "react-icons/io";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation"; 
 
 interface NavItem {
-  label: string
-  page: string
+  label: string;
+  page: string;
 }
 
-const NAV_ITEMS: Array<NavItem> = [
-    { label: "Login", page: "/login" },
-    { label: "Dashboard", page: "/dashboard" },
-    { label: "About", page: "/about" }, // assuming you have this page
-  ];
-
 export default function Navbar() {
-  const { systemTheme, theme, setTheme } = useTheme()
-  const currentTheme = theme === "system" ? systemTheme : theme
-  const pathname = usePathname()
-  const [navbar, setNavbar] = useState(false)
+  const { user, logout } = useAuth();
+  const { systemTheme, theme, setTheme } = useTheme();
+  const currentTheme = theme === "system" ? systemTheme : theme;
+  const pathname = usePathname();
+  const [navbar, setNavbar] = useState(false);
+  const router = useRouter(); 
 
-  // Toggle theme on button click and store it in localStorage
   const toggleTheme = () => {
-    const newTheme = currentTheme === "dark" ? "light" : "dark"
-    setTheme(newTheme)
-    localStorage.setItem("theme", newTheme) // Save the theme in localStorage
-  }
+    const newTheme = currentTheme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+  };
+
+  const NAV_ITEMS: Array<NavItem> = [
+    { label: user ? "Logout" : "Login", page: user ? "/" : "/login" }, 
+    { label: "Dashboard", page: "/dashboard" },
+    { label: "About", page: "/about" },
+  ];
+  const handleLogout = () => {
+    logout(); 
+    setNavbar(false); 
+    router.push("/"); 
+  };
 
   return (
     <header className="w-full mx-auto px-4 sm:px-20 fixed top-0 z-50 shadow bg-white dark:bg-stone-900 dark:border-b dark:border-stone-600">
@@ -64,11 +72,17 @@ export default function Navbar() {
                     key={idx}
                     href={item.page}
                     className="block lg:inline-block text-neutral-900 hover:text-neutral-500 dark:text-neutral-100 cursor-pointer"
-                    onClick={() => setNavbar(false)}
+                    onClick={() => {
+                      if (item.label === "Logout") {
+                        handleLogout();
+                      } else {
+                        setNavbar(false);
+                      }
+                    }}
                   >
                     {item.label}
                   </Link>
-                )
+                );
               })}
 
               {currentTheme === "dark" ? (
@@ -91,5 +105,5 @@ export default function Navbar() {
         </div>
       </div>
     </header>
-  )
+  );
 }

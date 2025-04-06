@@ -1,10 +1,13 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const { login } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -15,11 +18,11 @@ export default function LoginPage() {
       const res = await fetch('http://localhost:8000/login', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': 'application/json',
         },
-        body: new URLSearchParams({
-          username: email,
-          password: password,
+        body: JSON.stringify({
+          email,
+          password,
         }),
       });
 
@@ -29,7 +32,7 @@ export default function LoginPage() {
       }
 
       const data = await res.json();
-      localStorage.setItem('token', data.access_token); // Store JWT
+      login(data.access_token, email); // Store email along with JWT
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Login failed');
@@ -38,16 +41,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-lg shadow-md w-full max-w-md"
-      >
+      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h2 className="text-2xl font-semibold mb-6 text-center">Login</h2>
-
-        {error && (
-          <div className="text-red-500 text-sm mb-4 text-center">{error}</div>
-        )}
-
+        {error && <div className="text-red-500 text-sm mb-4 text-center">{error}</div>}
         <input
           type="email"
           placeholder="Email"
@@ -56,7 +52,6 @@ export default function LoginPage() {
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-
         <input
           type="password"
           placeholder="Password"
@@ -65,7 +60,6 @@ export default function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-
         <button
           type="submit"
           className="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700"

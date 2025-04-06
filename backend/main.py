@@ -1,22 +1,32 @@
 from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from sqlalchemy import create_engine, Column, Integer, String, MetaData
+from fastapi.security import OAuth2PasswordBearer
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, sessionmaker
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from pydantic import BaseModel
+import os
 
 # FastAPI app
 app = FastAPI()
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Database setup (SQLite)
 DATABASE_URL = "sqlite:///./users.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
-metadata = MetaData()
 
 # User model for database
 class User(Base):
@@ -27,8 +37,12 @@ class User(Base):
 
 Base.metadata.create_all(bind=engine)
 
-# Pydantic model for user input
+# Pydantic models
 class UserCreate(BaseModel):
+    email: str
+    password: str
+
+class LoginRequest(BaseModel):
     email: str
     password: str
 
@@ -37,7 +51,7 @@ class Token(BaseModel):
     token_type: str
 
 # Security settings
-SECRET_KEY = "your-secret-key"  # Change this in production!
+SECRET_KEY = os.getenv("SECRET_KEY", "a-very-secret-key-for-dev-only")  # Use env var in prod
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -74,6 +88,11 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+# Root endpoint
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Renewable Energy Data Visualization API"}
+
 # Register endpoint
 @app.post("/register")
 def register(user: UserCreate, db: Session = Depends(get_db)):
@@ -89,9 +108,9 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 
 # Login endpoint
 @app.post("/login", response_model=Token)
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = get_user(db, email=form_data.username)
-    if not user or not verify_password(form_data.password, user.hashed_password):
+def login(request: LoginRequest, db: Session = Depends(get_db)):
+    user = get_user(db, email=request.email)
+    if not user or not verify_password(request.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -101,7 +120,28 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     access_token = create_access_token(data={"sub": user.email}, expires_delta=access_token_expires)
     return {"access_token": access_token, "token_type": "bearer"}
 
-# Protected route example (for testing)
+@app.get("/users")
+def get_all_users(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    try:
+        # Verify the token
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    # Check if the user exists (optional, ensures the requester is valid)
+    user = get_user(db, email=email)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Query all users and extract emails
+    users = db.query(User).all()
+    emails = [user.email for user in users]
+    return {"emails": emails}
+
+# Protected route example
 @app.get("/me")
 def read_users_me(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     try:
