@@ -21,21 +21,31 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.commit()
     db.refresh(db_user)
 
-def create_energy_data(db: Session, energy_data: schemas.EnergyDataCreate, user_id: int):
-    date_obj = datetime.strptime(energy_data.date, "%Y-%m-%d").date()
-    db_energy_data = models.EnergyData(user_id=user_id, date=date_obj, source=energy_data.source, amount=energy_data.amount)
-    db.add(db_energy_data)
-    db.commit()
-    db.refresh(db_energy_data)
+def get_all_energy_data(db: Session):
+    return db.query(models.EnergyData).all()
 
-def get_filtered_energy_data(db: Session, filters: schemas.EnergyDataFilter):
-    start_date = datetime.strptime(filters.start_date, "%Y-%m-%d").date()
-    end_date = datetime.strptime(filters.end_date, "%Y-%m-%d").date()
-    query = db.query(models.EnergyData).filter(models.EnergyData.date >= start_date, models.EnergyData.date <= end_date)
-    if filters.source:
-        query = query.filter(models.EnergyData.source == filters.source)
-    return query.all()
+def get_filtered_energy_data(db: Session, filters: dict):
+    # Access the filter values from the dictionary
+    start_date = filters.get('start_date')
+    end_date = filters.get('end_date')
+    source = filters.get('source')
 
+    # Apply filters based on the provided criteria
+    query = db.query(models.EnergyData)
+
+    if start_date:
+        # Ensure that start_date is in the correct format (YYYY-MM-DD)
+        query = query.filter(models.EnergyData.date >= start_date)
+
+    if end_date:
+        # Ensure that end_date is in the correct format (YYYY-MM-DD)
+        query = query.filter(models.EnergyData.date <= end_date)
+
+    if source:
+        query = query.filter(models.EnergyData.energy_source == source)
+
+    energy_data = query.all()
+    return energy_data
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
