@@ -100,6 +100,15 @@ const DashboardPage = () => {
     return filteredData;
   };
 
+  const calculateDashletValues = (filteredData: any) => {
+    const energyGenerated = filteredData.reduce((acc: number, item: any) => acc + item.generation_mwh, 0);
+    const energyConsumed = filteredData.reduce((acc: number, item: any) => acc + item.consumption_mwh, 0);
+    const revenueGenerated = filteredData.reduce((acc: number, item: any) => acc + item.revenue, 0);
+    const totalCost = filteredData.reduce((acc: number, item: any) => acc + (item.price_per_mwh), 0);
+
+    return { energyGenerated, energyConsumed, revenueGenerated, totalCost };
+  };
+
   const ConsumptionGenerationChart = ({ data }: { data: any }) => {
     const filteredData = filterData(data);
     const isSameDate = startDate && endDate && startDate === endDate;
@@ -138,7 +147,7 @@ const DashboardPage = () => {
     };
 
     return (
-      <div style={{ width: '500px', height: '300px', margin: '0 auto' }}>
+      <div className="w-[900px] h-[500px] mx-auto bg-white p-4 rounded-lg shadow">
         <Line data={chartData} options={chartOptions} />
       </div>
     );
@@ -165,7 +174,7 @@ const DashboardPage = () => {
     };
 
     return (
-      <div style={{ width: '300px', height: '300px', margin: '0 auto' }}>
+      <div className="w-[300px] h-[300px] mx-auto bg-white p-4 rounded-lg shadow">
         <Pie data={chartData} options={chartOptions} />
       </div>
     );
@@ -196,7 +205,7 @@ const DashboardPage = () => {
     };
 
     return (
-      <div style={{ width: '300px', height: '300px', margin: '0 auto' }}>
+      <div className="w-[300px] h-[300px] mx-auto bg-white p-4 rounded-lg shadow">
         <Pie data={chartData} options={chartOptions} />
       </div>
     );
@@ -213,7 +222,7 @@ const DashboardPage = () => {
       datasets: [
         {
           label: 'Cost ($)',
-          data: filteredData.map((item: any) => item.price_per_mwh * item.consumption_mwh),
+          data: filteredData.map((item: any) => item.price_per_mwh * item.generation_mwh), // Assuming cost is price per MWh times generation
           borderColor: 'rgb(153, 102, 255)',
           backgroundColor: 'rgba(153, 102, 255, 0.2)',
           tension: 0.3,
@@ -240,7 +249,7 @@ const DashboardPage = () => {
     };
 
     return (
-      <div style={{ width: '500px', height: '300px', margin: '0 auto' }}>
+      <div className="w-[900px] h-[500px] mx-auto bg-white p-4 rounded-lg shadow">
         <Line data={chartData} options={chartOptions} />
       </div>
     );
@@ -295,15 +304,48 @@ const DashboardPage = () => {
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow mb-6">
-            {loading && <p>Loading data...</p>}
-            {error && <p className="text-red-500">{error}</p>}
+            {loading && <p className="text-center text-gray-600">Loading data...</p>}
+            {error && <p className="text-center text-red-500">{error}</p>}
             {data && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <SourcePieChart data={data} />
-                <RenewableNonRenewablePieChart data={data} />
-                <ConsumptionGenerationChart data={data} />
-                <CostRevenueChart data={data} />
-              </div>
+              <>
+                {/* Dashlets */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                  {(() => {
+                    const filteredData = filterData(data);
+                    const { energyGenerated, energyConsumed, revenueGenerated, totalCost } = calculateDashletValues(filteredData);
+                    return (
+                      <>
+                        <div className="bg-blue-100 p-4 rounded-lg shadow text-center">
+                          <h4 className="text-lg font-semibold text-blue-800">Energy Generated</h4>
+                          <p className="text-2xl font-bold text-blue-600">{energyGenerated.toFixed(2)} MWh</p>
+                        </div>
+                        <div className="bg-green-100 p-4 rounded-lg shadow text-center">
+                          <h4 className="text-lg font-semibold text-green-800">Energy Consumed</h4>
+                          <p className="text-2xl font-bold text-green-600">{energyConsumed.toFixed(2)} MWh</p>
+                        </div>
+                        <div className="bg-yellow-100 p-4 rounded-lg shadow text-center">
+                          <h4 className="text-lg font-semibold text-yellow-800">Revenue Generated</h4>
+                          <p className="text-2xl font-bold text-yellow-600">${revenueGenerated.toFixed(2)}</p>
+                        </div>
+                        <div className="bg-red-100 p-4 rounded-lg shadow text-center">
+                          <h4 className="text-lg font-semibold text-red-800">Total Cost per mwh</h4>
+                          <p className="text-2xl font-bold text-red-600">${totalCost.toFixed(2)}</p>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+
+                {/* Charts */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <SourcePieChart data={data} />
+                  <RenewableNonRenewablePieChart data={data} />
+                </div>
+                <div className="space-y-6">
+                  <ConsumptionGenerationChart data={data} />
+                  <CostRevenueChart data={data} />
+                </div>
+              </>
             )}
           </div>
         </>
