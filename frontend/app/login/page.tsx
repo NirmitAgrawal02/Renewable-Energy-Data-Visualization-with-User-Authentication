@@ -34,8 +34,12 @@ export default function LoginPage() {
       const data = await res.json();
       login(data.access_token, email); // Store email along with JWT
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Login failed');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'Login Failed');
+      } else {
+        setError('Login Failed');
+      }
     }
   };
 

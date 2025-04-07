@@ -1,13 +1,9 @@
-version: '3.8'
-
 services:
   backend:
     build:
       context: ./backend  # Path to the backend folder
     ports:
       - "8000:8000"        # Expose the backend API on port 8000
-    depends_on:
-      - frontend           # Ensure the frontend is started first
     volumes:
       - ./backend/renewable.db:/app/renewable.db  # Persist the SQLite3 database locally
 
@@ -16,8 +12,5 @@ services:
       context: ./frontend  # Path to the frontend folder
     ports:
       - "3000:3000"        # Expose the frontend on port 3000
-    depends_on:
-      - backend            # Ensure the backend is started first
     environment:
       - REACT_APP_API_URL=http://backend:8000  # Set API URL for frontend to backend
-

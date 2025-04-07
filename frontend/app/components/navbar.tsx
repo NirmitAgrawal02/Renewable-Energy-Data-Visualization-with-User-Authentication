@@ -1,7 +1,6 @@
 "use client" 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { RiMoonFill, RiSunLine } from "react-icons/ri";
 import { IoMdMenu, IoMdClose } from "react-icons/io";
@@ -17,7 +16,6 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const { systemTheme, theme, setTheme } = useTheme();
   const currentTheme = theme === "system" ? systemTheme : theme;
-  const pathname = usePathname();
   const [navbar, setNavbar] = useState(false);
   const router = useRouter(); 
 
