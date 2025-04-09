@@ -29,7 +29,7 @@ jobs:
       - name: Build and push backend image
         run: |
           docker build -t whitewarlock/greenpulse-backend:${{ github.sha }} ./backend
-          docker tag whitewarlock/greenpulse-backend:${{ github.sha }} ***/greenpulse-backend:latest
+          docker tag whitewarlock/greenpulse-backend:${{ github.sha }} whitewarlock/greenpulse-backend:latest
           docker push whitewarlock/greenpulse-backend:${{ github.sha }}
           docker push whitewarlock/greenpulse-backend:latest
 
@@ -37,6 +37,6 @@ jobs:
       - name: Build and push frontend image
         run: |
           docker build -t whitewarlock/greenpulse-frontend:${{ github.sha }} ./frontend
-          docker tag whitewarlock/greenpulse-frontend:${{ github.sha }} ***/greenpulse-frontend:latest
+          docker tag whitewarlock/greenpulse-frontend:${{ github.sha }} whitewarlock/greenpulse-frontend:latest
           docker push whitewarlock/greenpulse-frontend:${{ github.sha }}
           docker push whitewarlock/greenpulse-frontend:latest
