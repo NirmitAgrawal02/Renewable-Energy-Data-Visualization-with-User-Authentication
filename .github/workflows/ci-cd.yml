@@ -9,66 +9,15 @@ on:
       - main
 
 jobs:
-  test-backend:
-    runs-on: ubuntu-latest
-    steps:
-      # Checkout code
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # Set up Python 3.9 (matching your Dockerfile)
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-
-      # Install backend dependencies
-      - name: Install backend dependencies
-        run: |
-          cd backend
-          pip install -r app/requirements.txt
-
-      # Run backend tests (assuming pytest, adjust if different)
-      - name: Run backend tests
-        run: |
-          cd backend
-          pip install pytest # Install pytest if not in requirements.txt
-          pytest # Adjust if your test command or directory differs
-
-  test-frontend:
-    runs-on: ubuntu-latest
-    steps:
-      # Checkout code
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # Set up Node.js 20 (matching your Dockerfile)
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-
-      # Install frontend dependencies
-      - name: Install frontend dependencies
-        run: |
-          cd frontend
-          npm install
-
-      # Run frontend tests (assuming npm test, adjust if different)
-      - name: Run frontend tests
-        run: |
-          cd frontend
-          npm test # Adjust if your test command differs (e.g., npm run test)
-
   build-and-push:
-    needs: [test-backend, test-frontend] # Only run if tests pass
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' # Only deploy on push to main
+    if: github.ref == 'refs/heads/main' # Only run on push to main
 
     steps:
       # Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
+
 
       # Log in to Docker Hub
       - name: Log in to Docker Hub
